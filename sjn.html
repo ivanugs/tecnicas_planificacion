@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simulación SJN</title>
+    <style>
+        body {
+            font-family: 'Comfortaa', sans-serif;
+            background-color: #F2EFEF;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            margin-top: 20px;
+            padding: 8px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        .calcular-btn {
+            margin-top: 30px;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Simulación SJN</h1>
+    <label for="proceso-nombre">Nombre del Proceso:</label>
+    <input type="text" id="proceso-nombre">
+    <label for="tiempo-ejecucion">Tiempo de Ejecución:</label>
+    <input type="number" id="tiempo-ejecucion">
+    <button onclick="agregarProceso()">Agregar Proceso</button>
+
+    <table id="tabla-procesos">
+        <tr>
+            <th>Proceso</th>
+            <th>Tiempo de Ejecución</th>
+            <th>Tiempo de Espera</th>
+            <th>Tiempo de Retorno</th>
+        </tr>
+    </table>
+
+    <button onclick="calcularTiempoMedio()">Calcular Tiempo Medio</button>
+
+    <script>
+        var procesos = [];
+
+        function agregarProceso() {
+            var nombre = document.getElementById('proceso-nombre').value;
+            var tiempo = parseInt(document.getElementById('tiempo-ejecucion').value);
+
+            var proceso = {
+                nombre: nombre,
+                tiempoEjecucion: tiempo,
+                tiempoEspera: 0,
+                tiempoRetorno: 0
+            };
+
+            procesos.push(proceso);
+
+            var tabla = document.getElementById('tabla-procesos');
+            var fila = tabla.insertRow();
+
+            var celdaNombre = fila.insertCell();
+            celdaNombre.innerHTML = nombre;
+
+            var celdaTiempoEjecucion = fila.insertCell();
+            celdaTiempoEjecucion.innerHTML = tiempo;
+
+            var celdaTiempoEspera = fila.insertCell();
+            celdaTiempoEspera.innerHTML = 0;
+
+            var celdaTiempoRetorno = fila.insertCell();
+            celdaTiempoRetorno.innerHTML = 0;
+        }
+
+        function calcularTiempoMedio() {
+            procesos.sort(function(a, b) {
+                return a.tiempoEjecucion - b.tiempoEjecucion;
+            });
+
+            var totalTiempoEspera = 0;
+            var totalTiempoRetorno = 0;
+
+            for (var i = 0; i < procesos.length; i++) {
+                var proceso = procesos[i];
+
+                proceso.tiempoEspera = totalTiempoEspera;
+                proceso.tiempoRetorno = totalTiempoEspera + proceso.tiempoEjecucion;
+
+                totalTiempoEspera += proceso.tiempoEjecucion;
+                totalTiempoRetorno += proceso.tiempoRetorno;
+
+                var fila = document.getElementById('tabla-procesos').rows[i + 1];
+
+                fila.cells[2].innerHTML = proceso.tiempoEspera;
+                fila.cells[3].innerHTML = proceso.tiempoRetorno;
+            }
+
+            var tiempoMedioEspera = totalTiempoEspera / procesos.length;
+            var tiempoMedioRetorno = totalTiempoRetorno / procesos.length;
+
+            alert('Tiempo Medio de Espera: ' + tiempoMedioEspera.toFixed(2) +
+                '\nTiempo Medio de Retorno: ' + tiempoMedioRetorno.toFixed(2));
+        }
+    </script>
+</body>
+</html>

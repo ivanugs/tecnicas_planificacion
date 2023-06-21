@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Simulación Round Robin</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: 'Comfortaa', sans-serif;
+            background-color: #F2EFEF;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            margin-top: 20px;
+            padding: 8px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+        .calcular-btn {
+            margin-top: 30px;
+        }
+    </style>
+        <link href="https://fonts.googleapis.com/css2?family=Comfortaa&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Simulación Round Robin</h1>
+
+        <div class="form-group">
+            <label for="proceso-nombre">Nombre del Proceso:</label>
+            <input type="text" id="proceso-nombre" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="tiempo-ejecucion">Tiempo de Ejecución:</label>
+            <input type="number" id="tiempo-ejecucion" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="tiempo-llegada">Tiempo de Llegada:</label>
+            <input type="number" id="tiempo-llegada" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label for="quantum">Quantum:</label>
+            <input type="number" id="quantum" class="form-control">
+        </div>
+
+        <button onclick="agregarProceso()" class="btn btn-primary">Agregar Proceso</button>
+
+        <table id="tabla-procesos" class="table">
+            <thead>
+                <tr>
+                    <th>Proceso</th>
+                    <th>Tiempo de Ejecución</th>
+                    <th>Tiempo de Llegada</th>
+                    <th>Tiempo Restante</th>
+                    <th>Tiempo de Espera</th>
+                    <th>Tiempo de Retorno</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button onclick="simularRoundRobin()" class="btn btn-primary calcular-btn">Simular Round Robin</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        var procesos = [];
+
+        function agregarProceso() {
+            var nombre = $('#proceso-nombre').val();
+            var tiempoEjecucion = parseInt($('#tiempo-ejecucion').val());
+            var tiempoLlegada = parseInt($('#tiempo-llegada').val());
+
+            var proceso = {
+                nombre: nombre,
+                tiempoEjecucion: tiempoEjecucion,
+                tiempoLlegada: tiempoLlegada,
+                tiempoRestante: tiempoEjecucion,
+                tiempoEspera: 0,
+                tiempoRetorno: 0
+            };
+
+            procesos.push(proceso);
+
+            var fila = '<tr>' +
+                '<td>' + nombre + '</td>' +
+                '<td>' + tiempoEjecucion + '</td>' +
+                '<td>' + tiempoLlegada + '</td>' +
+                '<td>' + tiempoEjecucion + '</td>' +
+                '<td>0</td>' +
+                '<td>0</td>' +
+                '</tr>';
+
+            $('#tabla-procesos tbody').append(fila);
+        }
+
+        function simularRoundRobin() {
+            var quantum = parseInt($('#quantum').val());
+            var tiempoTotal = 0;
+            var procesoActual = null;
+
+            while (procesos.length > 0) {
+                var proceso = procesos[0];
+
+                if (proceso.tiempoRestante <= quantum) {
+                    tiempoTotal += proceso.tiempoRestante;
+                    proceso.tiempoRestante = 0;
+                } else {
+                    tiempoTotal += quantum;
+                    proceso.tiempoRestante -= quantum;
+                }
+
+                proceso.tiempoEspera += tiempoTotal - proceso.tiempoRetorno;
+
+                if (proceso.tiempoRestante === 0) {
+                    proceso.tiempoRetorno = tiempoTotal;
+
+                    var fila = $('#tabla-procesos tbody tr:eq(0)');
+                    fila.find('td:eq(3)').text(0);
+                    fila.find('td:eq(4)').text(proceso.tiempoEspera);
+                    fila.find('td:eq(5)').text(proceso.tiempoRetorno);
+
+                    procesos.shift();
+                } else {
+                    procesos.push(procesos.shift());
+                }
+            }
+
+            calcularTiemposMedios();
+        }
+
+        function calcularTiemposMedios() {
+            var totalTiempoEspera = 0;
+            var totalTiempoRetorno = 0;
+
+            for (var i = 0; i < procesos.length; i++) {
+                var proceso = procesos[i];
+
+                totalTiempoEspera += proceso.tiempoEspera;
+                totalTiempoRetorno += proceso.tiempoRetorno;
+
+                var fila = $('#tabla-procesos tbody tr:eq(' + i + ')');
+
+                fila.find('td:eq(3)').text(proceso.tiempoRestante);
+                fila.find('td:eq(4)').text(proceso.tiempoEspera);
+                fila.find('td:eq(5)').text(proceso.tiempoRetorno);
+            }
+
+            var tiempoMedioEspera = totalTiempoEspera / procesos.length;
+            var tiempoMedioRetorno = totalTiempoRetorno / procesos.length;
+
+            alert('Tiempo Medio de Espera: ' + tiempoMedioEspera.toFixed(2) +
+                '\nTiempo Medio de Retorno: ' + tiempoMedioRetorno.toFixed(2));
+        }
+    </script>
+</body>
+</html>
